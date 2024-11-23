@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relógio Digital</title>
+    <title>Relógio Digital - Hora do Servidor</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -28,23 +28,48 @@
     </style>
 </head>
 <body>
-    <div class="clock" id="clock">00:00:00</div>
+    <div class="clock" id="clock">Carregando...</div>
 
     <script>
-        function updateClock() {
-            const now = new Date();
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-            const timeString = `${hours}:${minutes}:${seconds}`;
-            document.getElementById('clock').textContent = timeString;
+        async function fetchServerTime() {
+            try {
+                // Substitua pela URL do servidor que retorna a hora
+                const response = await fetch('https://worldtimeapi.org/api/timezone/Etc/UTC');
+                const data = await response.json();
+
+                // Extrai hora do servidor
+                const serverDate = new Date(data.utc_datetime);
+                return serverDate;
+            } catch (error) {
+                console.error('Erro ao buscar hora do servidor:', error);
+                return new Date(); // Retorna a hora local como fallback
+            }
         }
 
-        // Atualiza o relógio a cada segundo
-        setInterval(updateClock, 1000);
+        async function startClock() {
+            const serverTime = await fetchServerTime();
+            let currentTime = serverTime;
 
-        // Inicia o relógio imediatamente ao carregar a página
-        updateClock();
+            function updateClock() {
+                const hours = String(currentTime.getHours()).padStart(2, '0');
+                const minutes = String(currentTime.getMinutes()).padStart(2, '0');
+                const seconds = String(currentTime.getSeconds()).padStart(2, '0');
+                const timeString = `${hours}:${minutes}:${seconds}`;
+                document.getElementById('clock').textContent = timeString;
+
+                // Incrementa o tempo em 1 segundo
+                currentTime.setSeconds(currentTime.getSeconds() + 1);
+            }
+
+            // Atualiza o relógio a cada segundo
+            setInterval(updateClock, 1000);
+
+            // Inicia o relógio imediatamente
+            updateClock();
+        }
+
+        // Inicia o relógio ao carregar a página
+        startClock();
     </script>
 </body>
 </html>
